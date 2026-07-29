@@ -18,21 +18,24 @@ Backtesting alone doesn't capture what it's like to make a call in real time. Th
 ## Structure
 
 ```
-/systematic/       - signal logic and Alpaca execution scripts
+/systematic/        - signal logic and Alpaca execution scripts
+/systematic/logs/   - weekly trade tables with signal values and per-trade reasoning
 /discretionary/     - raw manual trade logs (ticker, size, entry/exit price, return)
 /diary/             - dated entries for both tracks: decision, reasoning, outcome, reflection
 ```
 
+## Log format (systematic and discretionary)
+
+Each weekly file contains a trade table (date, ticker, side, size, entry/exit price, return), followed by a short reasoning note per trade underneath.
+
 ## Diary format
 
-Each entry follows:
+Each weekly entry is a reflection covering:
 
-- **Date**
-- **Platform** (Alpaca / Investopedia)
-- **Decision** (buy/sell/hold, ticker, size)
-- **Reasoning**
-- **Outcome** (filled in after the fact)
-- **Reflection**
+- **Summary** of the week's trades on both tracks
+- **What worked / what didn't**
+- **Comparison** between systematic and discretionary decisions
+- **Adjustments** for the following week
 
 ## Status
 
