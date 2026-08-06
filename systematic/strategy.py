@@ -13,6 +13,10 @@ from datetime import datetime, timedelta
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.enums import DataFeed
 
+VOLATILITY_THRESHOLD = 2
+FULL_SELL_RATIO = 0.1
+HOLD_RATIO = 0.9
+
 load_dotenv()
 
 api_key = os.getenv("alpaca_api_key")
@@ -43,9 +47,9 @@ comparison = pd.DataFrame({
     "short_ma": short_ma,
     "long_ma": long_ma
 })
-comparison["signal"] = comparison["short_ma"] > comparison["long_ma"] # True = bullish crossover state
+comparison["signal"] = comparison["short_ma"] > comparison["long_ma"] # kept for reference: 10/20 pair lagged the 07-31 shock by 4 days hence switching to 3/7 below
 
-print(comparison)
+# print(comparison)
 
 # faster pair tested to check if window length alone explains the 07-31 lag
 short_ma_3 = close.rolling(window=3).mean()
@@ -59,7 +63,7 @@ comparison2 = pd.DataFrame({
 
 comparison2["signal"] = comparison2["short_ma"] > comparison2["long_ma"]
 
-print(comparison2)
+# print(comparison2)
 
 ohlc = bars.df[["high", "low", "close"]].copy()
 
@@ -73,4 +77,31 @@ ohlc["true_range"] = ohlc[["tr1", "tr2", "tr3"]].max(axis=1) # max of the three 
 ohlc["atr"] = ohlc["true_range"].rolling(window=14).mean() # 14-day is the standard ATR convention
 ohlc["tr_atr_ratio"] = ohlc["true_range"] / ohlc["atr"].shift(1) # shift(1) so today's move is compared against yesterday's ATR, not today's
 
-print(ohlc)
+ohlc["unusual_volatility"] = ohlc["tr_atr_ratio"] > VOLATILITY_THRESHOLD
+
+# print(ohlc)
+
+ohlc["size_multiplier"] = (VOLATILITY_THRESHOLD / ohlc["tr_atr_ratio"]).clip(upper=1)
+BASE_POSITION_SIZE = 5
+ohlc["suggested_size"] = (BASE_POSITION_SIZE * ohlc["size_multiplier"]).round()
+
+# print(ohlc[["tr_atr_ratio", "size_multiplier", "suggested_size"]])
+
+merged = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
+# print(merged[["close_x", "signal", "tr_atr_ratio", "suggested_size"]])
+
+def decide_action(signal, suggested_size, qty, unrealized_pl):
+    if unrealized_pl <= 0:
+        return "hold"
+
+    if signal:
+        return "hold"
+
+    ratio = suggested_size / qty
+
+    if ratio <= FULL_SELL_RATIO:
+        return "full sell"
+    elif ratio >= HOLD_RATIO:
+        return "hold"
+    else:
+        return "partial sell"
