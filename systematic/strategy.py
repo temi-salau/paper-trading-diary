@@ -49,8 +49,6 @@ comparison = pd.DataFrame({
 })
 comparison["signal"] = comparison["short_ma"] > comparison["long_ma"] # kept for reference: 10/20 pair lagged the 07-31 shock by 4 days hence switching to 3/7 below
 
-# print(comparison)
-
 # faster pair tested to check if window length alone explains the 07-31 lag
 short_ma_3 = close.rolling(window=3).mean()
 long_ma_7 = close.rolling(window=7).mean()
@@ -62,8 +60,6 @@ comparison2 = pd.DataFrame({
 })
 
 comparison2["signal"] = comparison2["short_ma"] > comparison2["long_ma"]
-
-# print(comparison2)
 
 ohlc = bars.df[["high", "low", "close"]].copy()
 
@@ -79,16 +75,8 @@ ohlc["tr_atr_ratio"] = ohlc["true_range"] / ohlc["atr"].shift(1) # shift(1) so t
 
 ohlc["unusual_volatility"] = ohlc["tr_atr_ratio"] > VOLATILITY_THRESHOLD
 
-# print(ohlc)
-
 ohlc["size_multiplier"] = (VOLATILITY_THRESHOLD / ohlc["tr_atr_ratio"]).clip(upper=1)
 BASE_POSITION_SIZE = 5
-ohlc["suggested_size"] = (BASE_POSITION_SIZE * ohlc["size_multiplier"]).round()
-
-# print(ohlc[["tr_atr_ratio", "size_multiplier", "suggested_size"]])
-
-merged = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
-# print(merged[["close_x", "signal", "tr_atr_ratio", "suggested_size"]])
 
 delta = close.diff()
 gains = delta.where(delta > 0, 0)
@@ -96,7 +84,6 @@ losses = -delta.where(delta < 0, 0)
 avg_gain = gains.rolling(window=14).mean()
 avg_loss = losses.rolling(window=14).mean()
 rsi = 100 - (100 / (1 + avg_gain/avg_loss)) # >70 overbought, <30 oversold
-print(rsi)
 
 ohlc["up_move"] = ohlc["high"] - ohlc["high"].shift(1)
 ohlc["down_move"] = ohlc["low"].shift(1) - ohlc["low"]
@@ -114,7 +101,16 @@ minus_di = 100 * (smoothed_minus_dm / ohlc["atr"])
 
 dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di) # how far apart the two directions are regardless of which dominates
 adx = dx.rolling(window=14).mean() # smoothed trend strength (Investopedia convention): <25 weak/no trend, 25-50 strong, 50-75 very strong, 75-100 extremely strong
-print(adx)
+
+ohlc["rsi"] = rsi
+ohlc["adx"] = adx
+
+adx_multiplier = (ohlc["adx"] / 25).clip(upper=1)
+ohlc["final_multiplier"] = ohlc["size_multiplier"] * adx_multiplier
+ohlc["suggested_size"] = (BASE_POSITION_SIZE * ohlc["final_multiplier"]).round()
+
+signals = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
+print(signals[["close_x", "signal", "tr_atr_ratio", "rsi", "adx", "suggested_size"]])
 
 def decide_action(signal, suggested_size, qty, unrealized_pl):
     if unrealized_pl <= 0:
