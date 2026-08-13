@@ -95,8 +95,26 @@ gains = delta.where(delta > 0, 0)
 losses = -delta.where(delta < 0, 0)
 avg_gain = gains.rolling(window=14).mean()
 avg_loss = losses.rolling(window=14).mean()
-rsi = 100 - (100 / (1 + avg_gain/avg_loss))
+rsi = 100 - (100 / (1 + avg_gain/avg_loss)) # >70 overbought, <30 oversold
 print(rsi)
+
+ohlc["up_move"] = ohlc["high"] - ohlc["high"].shift(1)
+ohlc["down_move"] = ohlc["low"].shift(1) - ohlc["low"]
+
+# only counts if move is both positive and bigger than the other move
+ohlc["plus_dm"] = ((ohlc["up_move"] > ohlc["down_move"]) & (ohlc["up_move"] > 0)) * ohlc["up_move"]
+ohlc["minus_dm"] = ((ohlc["down_move"] > ohlc["up_move"]) & (ohlc["down_move"] > 0)) * ohlc["down_move"]
+
+# upwards and downwards pressure scaled by volatility
+smoothed_plus_dm = ohlc["plus_dm"].rolling(window=14).mean()
+smoothed_minus_dm = ohlc["minus_dm"].rolling(window=14).mean()
+
+plus_di = 100 * (smoothed_plus_dm / ohlc["atr"])
+minus_di = 100 * (smoothed_minus_dm / ohlc["atr"])
+
+dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di) # how far apart the two directions are regardless of which dominates
+adx = dx.rolling(window=14).mean() # smoothed trend strength (Investopedia convention): <25 weak/no trend, 25-50 strong, 50-75 very strong, 75-100 extremely strong
+print(adx)
 
 def decide_action(signal, suggested_size, qty, unrealized_pl):
     if unrealized_pl <= 0:
