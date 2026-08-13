@@ -90,6 +90,14 @@ ohlc["suggested_size"] = (BASE_POSITION_SIZE * ohlc["size_multiplier"]).round()
 merged = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
 # print(merged[["close_x", "signal", "tr_atr_ratio", "suggested_size"]])
 
+delta = close.diff()
+gains = delta.where(delta > 0, 0)
+losses = -delta.where(delta < 0, 0)
+avg_gain = gains.rolling(window=14).mean()
+avg_loss = losses.rolling(window=14).mean()
+rsi = 100 - (100 / (1 + avg_gain/avg_loss))
+print(rsi)
+
 def decide_action(signal, suggested_size, qty, unrealized_pl):
     if unrealized_pl <= 0:
         return "hold (loss protection)"
