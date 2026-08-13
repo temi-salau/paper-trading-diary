@@ -92,16 +92,16 @@ merged = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
 
 def decide_action(signal, suggested_size, qty, unrealized_pl):
     if unrealized_pl <= 0:
-        return "hold"
+        return "hold (loss protection)"
 
     if signal:
-        return "hold"
+        return "hold (bullish signal)"
 
     ratio = suggested_size / qty
 
     if ratio <= FULL_SELL_RATIO:
         return "full sell"
     elif ratio >= HOLD_RATIO:
-        return "hold"
+        return "hold (change too small)"
     else:
         return "partial sell"
