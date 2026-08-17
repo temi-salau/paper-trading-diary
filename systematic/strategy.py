@@ -112,8 +112,12 @@ ohlc["suggested_size"] = (BASE_POSITION_SIZE * ohlc["final_multiplier"]).round()
 signals = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
 print(signals[["close_x", "signal", "tr_atr_ratio", "rsi", "adx", "suggested_size"]])
 
-def decide_action(signal, suggested_size, qty, unrealized_pl, rsi):
+def decide_action(signal, suggested_size, qty, unrealized_pl, rsi, adx):
     if unrealized_pl <= 0:
+        if not signal and adx >= 40:
+            ratio = suggested_size / qty
+            if ratio > FULL_SELL_RATIO:
+                return "partial sell (loss protection override, strong confirmed downtrend)"
         return "hold (loss protection)"
 
     if signal:
