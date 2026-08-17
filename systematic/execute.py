@@ -26,5 +26,6 @@ unrealized_pl = float(position.unrealized_pl)
 
 today_signal = signals["signal"].iloc[-1] # most recent row's signal, based on the 3/7 crossover pair
 today_suggested_size = signals["suggested_size"].iloc[-1] # volatility and trend strength adjusted sizing for today
-action = decide_action(today_signal, today_suggested_size, qty, unrealized_pl)
+today_rsi = signals["rsi"].iloc[-1]
+action = decide_action(today_signal, today_suggested_size, qty, unrealized_pl, today_rsi)
 print(f"{symbol}: {action}")
