@@ -7,7 +7,8 @@ or fully sell, based on trend direction, volatility-adjusted sizing, and profit/
 from dotenv import load_dotenv
 import os
 from alpaca.trading.client import TradingClient
-from strategy import decide_action, signals
+from decision import decide_action
+from indicators import signals
 
 load_dotenv()
 
