@@ -18,10 +18,15 @@ Backtesting alone doesn't capture what it's like to make a call in real time. Th
 ## Structure
 
 ```
-/systematic/        - signal logic and Alpaca execution scripts
+/systematic/
+    data.py       - fetches price data from Alpaca
+    indicators.py - computes signals (MA crossover, ATR, RSI, ADX)
+    decision.py   - decide_action(): hold / partial sell / full sell logic
+    execute.py    - pulls live position, applies decide_action
 /systematic/logs/   - weekly trade tables with signal values and per-trade reasoning
 /discretionary/     - raw manual trade logs (ticker, size, entry/exit price, return)
 /diary/             - dated entries for both tracks: decision, reasoning, outcome, reflection
+RULES.md            - accumulated process rules, added only once proven by a real trade
 ```
 
 ## Log format (systematic and discretionary)
