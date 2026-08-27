@@ -21,14 +21,16 @@ data_client = StockHistoricalDataClient(api_key, secret_key)
 start = datetime.now() - timedelta(days=60) # 60 days gives enough history for a 20-day MA with room to spare
 end = datetime.now()
 
-requests = StockBarsRequest(
-    symbol_or_symbols="AAPL",
-    start=start,
-    end=end,
-    timeframe=TimeFrame.Day,
-    feed=DataFeed.IEX # free-tier
-)
+def get_price_data(symbol):
+    requests = StockBarsRequest(
+        symbol_or_symbols="AAPL",
+        start=start,
+        end=end,
+        timeframe=TimeFrame.Day,
+        feed=DataFeed.IEX # free-tier
+    )
 
-bars = data_client.get_stock_bars(requests)
-close = bars.df["close"]
-ohlc = bars.df[["high", "low", "close"]].copy()
+    bars = data_client.get_stock_bars(requests)
+    close = bars.df["close"]
+    ohlc = bars.df[["high", "low", "close"]].copy()
+    return close, ohlc
