@@ -30,8 +30,9 @@ for position in positions:
     signals = get_signals(close, ohlc)
 
     today_signal = signals["signal"].iloc[-1] # most recent row's signal, based on the 3/7 crossover pair
-    today_suggested_size = signals["suggested_size"].iloc[-1] # volatility and trend strength adjusted sizing for today
+    today_suggested_sell_size = signals["suggested_sell_size"].iloc[-1] # volatility and trend strength adjusted sizing for today
+    today_suggested_buy_size = signals["suggested_buy_size"].iloc[-1]
     today_rsi = signals["rsi"].iloc[-1]
     today_adx = signals["adx"].iloc[-1]
-    action = decide_action(today_signal, today_suggested_size, qty, unrealized_pl, today_rsi, today_adx)
+    action = decide_action(today_signal, today_suggested_sell_size, today_suggested_buy_size, qty, unrealized_pl, today_rsi, today_adx)
     print(f"{symbol}: {action}")

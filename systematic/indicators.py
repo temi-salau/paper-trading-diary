@@ -69,7 +69,10 @@ def get_signals(close, ohlc):
 
     adx_multiplier = (ohlc["adx"] / 25).clip(upper=1)
     ohlc["final_multiplier"] = ohlc["size_multiplier"] * adx_multiplier
-    ohlc["suggested_size"] = (BASE_POSITION_SIZE * ohlc["final_multiplier"]).round()
+    ohlc["suggested_sell_size"] = (BASE_POSITION_SIZE * ohlc["final_multiplier"]).round()
+
+    buy_confidence_multiplier = (ohlc["adx"] / 40).clip(upper=2) # capped at 2x base size for a very strong trend
+    ohlc["suggested_buy_size"] = (BASE_POSITION_SIZE * buy_confidence_multiplier).round()
 
     signals = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
     return signals
