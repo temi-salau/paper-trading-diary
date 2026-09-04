@@ -20,6 +20,8 @@ trading_client = TradingClient(api_key, secret_key, paper=True)
 print("Connected to Alpaca API successfully!")
 
 positions = trading_client.get_all_positions()
+account = trading_client.get_account()
+portfolio_value = float(account.portfolio_value)
 
 for position in positions:
     symbol = position.symbol
@@ -47,7 +49,8 @@ if symbol_to_check:
     today_adx = signals["adx"].iloc[-1]
     today_rsi = signals["rsi"].iloc[-1]
     today_pct_off_high = signals["pct_off_high"].iloc[-1]
+    today_close = signals["close_x"].iloc[-1]
 
     print(f"Signal: {today_signal}, ADX: {today_adx:.2f}, RSI: {today_rsi:.2f}, % off high: {today_pct_off_high:.2%}")
-    result = decide_enter(today_signal, today_adx, today_rsi, today_pct_off_high)
+    result = decide_enter(today_signal, today_adx, today_rsi, today_pct_off_high, portfolio_value, today_close)
     print(f"{symbol_to_check}: {result}")
