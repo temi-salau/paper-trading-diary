@@ -7,7 +7,7 @@ or fully sell, based on trend direction, volatility-adjusted sizing, and profit/
 from dotenv import load_dotenv
 import os
 from alpaca.trading.client import TradingClient
-from decision import decide_action
+from decision import decide_action, decide_enter
 from indicators import get_signals
 from data import get_price_data
 
@@ -36,3 +36,18 @@ for position in positions:
     today_adx = signals["adx"].iloc[-1]
     action = decide_action(today_signal, today_suggested_sell_size, today_suggested_buy_size, qty, unrealized_pl, today_rsi, today_adx)
     print(f"{symbol}: {action}")
+
+symbol_to_check = input("Enter a stock symbol to check for entry (or press Enter to skip): ").upper()
+
+if symbol_to_check:
+    close, ohlc = get_price_data(symbol_to_check)
+    signals = get_signals(close, ohlc)
+
+    today_signal = signals["signal"].iloc[-1]
+    today_adx = signals["adx"].iloc[-1]
+    today_rsi = signals["rsi"].iloc[-1]
+    today_pct_off_high = signals["pct_off_high"].iloc[-1]
+
+    print(f"Signal: {today_signal}, ADX: {today_adx:.2f}, RSI: {today_rsi:.2f}, % off high: {today_pct_off_high:.2%}")
+    result = decide_enter(today_signal, today_adx, today_rsi, today_pct_off_high)
+    print(f"{symbol_to_check}: {result}")

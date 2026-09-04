@@ -18,12 +18,12 @@ secret_key = os.getenv("alpaca_secret_key")
 
 data_client = StockHistoricalDataClient(api_key, secret_key)
 
-start = datetime.now() - timedelta(days=60) # 60 days gives enough history for a 20-day MA with room to spare
+start = datetime.now() - timedelta(days=180) # ~6 months (approx. max holding horizon)
 end = datetime.now()
 
 def get_price_data(symbol):
     requests = StockBarsRequest(
-        symbol_or_symbols="AAPL",
+        symbol_or_symbols=symbol,
         start=start,
         end=end,
         timeframe=TimeFrame.Day,

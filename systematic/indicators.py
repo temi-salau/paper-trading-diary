@@ -74,5 +74,8 @@ def get_signals(close, ohlc):
     buy_confidence_multiplier = (ohlc["adx"] / 40).clip(upper=2) # capped at 2x base size for a very strong trend
     ohlc["suggested_buy_size"] = (BASE_POSITION_SIZE * buy_confidence_multiplier).round()
 
+    ohlc["six_month_high"] = ohlc["close"].rolling(window=126).max()  # ~126 trading days in 6 months
+    ohlc["pct_off_high"] = (ohlc["close"] - ohlc["six_month_high"]) / ohlc["six_month_high"]  # 0 = at the high, negative = below it
+    
     signals = pd.merge(comparison2, ohlc, left_index=True, right_index=True)
     return signals

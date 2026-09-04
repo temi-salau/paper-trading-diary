@@ -6,6 +6,9 @@ volatility-adjusted sizing, RSI, ADX, and unrealized P&L.
 FULL_SELL_RATIO = 0.1
 HOLD_RATIO = 0.9
 MIN_BUY_RATIO = 0.15 # higher than FULL_SELL_RATIO, due to risk req more conviction
+NEAR_HIGH_THRESHOLD = -0.05  # within 5% of the 6-month high counts as "near"
+STRONG_TREND_ADX = 40
+TREND_ADX = 25
 
 def decide_action(signal, suggested_sell_size, suggested_buy_size, qty, unrealized_pl, rsi, adx):
     if unrealized_pl <= 0:
@@ -35,3 +38,16 @@ def decide_action(signal, suggested_sell_size, suggested_buy_size, qty, unrealiz
         return "partial sell (RSI oversold, downgraded from full sell)"
 
     return action
+
+def decide_enter(signal, adx, rsi, pct_off_high):
+    if not signal or rsi >= 70:
+        return "no entry signal"
+
+    high_note = "near 6-month high" if pct_off_high >= NEAR_HIGH_THRESHOLD else "off recent high"
+
+    if adx >= STRONG_TREND_ADX:
+        return f"strong buy (confirmed strong uptrend, {high_note}, not overbought)"
+    elif adx >= TREND_ADX:
+        return f"buy (confirmed uptrend, {high_note}, not overbought)"
+    
+    return "no entry signal"
